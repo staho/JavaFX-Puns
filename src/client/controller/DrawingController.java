@@ -1,4 +1,4 @@
-package controller;
+package client.controller;
 
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -8,7 +8,7 @@ import javafx.scene.canvas.*;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
-import model.Line;
+import client.model.Line;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -23,6 +23,7 @@ public class DrawingController {
     private GraphicsContext graphicsContext;
     private double lineWidth;
     private List<Line> lineList;
+    private Connection connection;
 
     @FXML
     private javafx.scene.canvas.Canvas canvas;
@@ -54,6 +55,11 @@ public class DrawingController {
     }
 
     @FXML
+    private void handleConnect(){
+        connection = new Connection(this);
+    }
+
+    @FXML
     private void handleRedraw(){
         for(Line line:lineList){
             drawLine(line);
@@ -70,59 +76,48 @@ public class DrawingController {
         graphicsContext = canvas.getGraphicsContext2D();
         initDraw(graphicsContext);
 
-        colorPicker.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                color = colorPicker.getValue();
-                graphicsContext.setStroke(color);
-            }
+        colorPicker.setOnAction(event -> {
+            color = colorPicker.getValue();
+            graphicsContext.setStroke(color);
         });
 
         canvas.addEventHandler(MouseEvent.MOUSE_PRESSED,
-                new EventHandler<MouseEvent>(){
-
-                    @Override
-                    public void handle(MouseEvent event) {
-                        lineList.add(new Line(lineWidth, colorPicker.getValue()));
-                        graphicsContext.beginPath();
-                        graphicsContext.moveTo(event.getX(), event.getY());
-                        lineList.get(lineList.size()-1).addPoint(event.getX(), event.getY());
-                        //System.out.println("Start from: x: " + event.getX() + " y: " + event.getY());
-                        graphicsContext.stroke();
-                    }
+                event -> {
+                    lineList.add(new Line(lineWidth, fxToAwtColor(colorPicker.getValue())));
+                    graphicsContext.beginPath();
+                    graphicsContext.moveTo(event.getX(), event.getY());
+                    lineList.get(lineList.size()-1).addPoint(event.getX(), event.getY());
+                    //System.out.println("Start from: x: " + event.getX() + " y: " + event.getY());
+                    graphicsContext.stroke();
                 });
 
         canvas.addEventHandler(MouseEvent.MOUSE_DRAGGED,
-                new EventHandler<MouseEvent>(){
+                event -> {
+                    graphicsContext.lineTo(event.getX(), event.getY());
+                    lineList.get(lineList.size()-1).addPoint(event.getX(), event.getY());
+                    //System.out.println("x: " + event.getX() + " y: " + event.getY());
+                    graphicsContext.stroke();
 
-                    @Override
-                    public void handle(MouseEvent event) {
-                        graphicsContext.lineTo(event.getX(), event.getY());
-                        lineList.get(lineList.size()-1).addPoint(event.getX(), event.getY());
-                        //System.out.println("x: " + event.getX() + " y: " + event.getY());
-                        graphicsContext.stroke();
-                    }
                 });
 
         canvas.addEventHandler(MouseEvent.MOUSE_RELEASED,
-                new EventHandler<MouseEvent>(){
-
-                    @Override
-                    public void handle(MouseEvent event) {
-                        //System.out.println("Relased");
-
-                    }
+                event -> {
+                    //System.out.println("Relased");
+                    connection.sendLine(lineList.get(lineList.size()-1));
                 });
     }
 
 
 
-    private void drawLine(Line line){
+    public void drawLine(Line line){
         if(line != null) {
             graphicsContext.beginPath();
             graphicsContext.moveTo(line.getListOfPoints().get(0).getX(), line.getListOfPoints().get(0).getY());
+
+            graphicsContext.setStroke(awtToFxColor(line.getLineColor()));
+
             graphicsContext.stroke();
-            for (Point2D point : line.getListOfPoints()) {
+            for (java.awt.geom.Point2D point : line.getListOfPoints()) {
                 graphicsContext.lineTo(point.getX(), point.getY());
                 graphicsContext.stroke();
             }
@@ -130,6 +125,23 @@ public class DrawingController {
 
     }
 
+    private Color awtToFxColor(java.awt.Color color){
+        int r = color.getRed();
+        int g = color.getGreen();
+        int b = color.getBlue();
+        int a = color.getAlpha();
+        double opacity = a / 255.0;
+
+       Color color1 = Color.rgb(r, g, b, opacity);
+       return color1;
+    }
+    private java.awt.Color fxToAwtColor(Color color){
+        java.awt.Color color1 = new java.awt.Color( (float) color.getRed(),
+                                                    (float) color.getGreen(),
+                                                    (float) color.getBlue(),
+                                                    (float) color.getOpacity());
+        return color1;
+    }
 
     private void initDraw(GraphicsContext gc){
         handleClear();
