@@ -56,7 +56,7 @@ public class DrawingController {
     @FXML
     private void handleRedraw(){
         for(Line line:lineList){
-            drawFromLineList(line);
+            drawLine(line);
         }
     }
 
@@ -117,7 +117,7 @@ public class DrawingController {
 
 
 
-    private void drawFromLineList(Line line){
+    private void drawLine(Line line){
         if(line != null) {
             graphicsContext.beginPath();
             graphicsContext.moveTo(line.getListOfPoints().get(0).getX(), line.getListOfPoints().get(0).getY());
