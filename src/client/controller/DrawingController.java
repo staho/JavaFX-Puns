@@ -1,5 +1,6 @@
 package client.controller;
 
+import com.sun.javaws.Main;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -24,6 +25,11 @@ public class DrawingController {
     private double lineWidth;
     private List<Line> lineList;
     private Connection connection;
+    private MainApp mainApp;
+
+    public void setMainApp(MainApp mainApp) {
+        this.mainApp = mainApp;
+    }
 
     @FXML
     private javafx.scene.canvas.Canvas canvas;
@@ -57,6 +63,7 @@ public class DrawingController {
     @FXML
     private void handleConnect(){
         connection = new Connection(this);
+        mainApp.getPrimaryStage().setTitle("Kamilbury " + connection.getHostName());
     }
 
     @FXML

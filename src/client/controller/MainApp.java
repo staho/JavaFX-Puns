@@ -15,6 +15,10 @@ public class MainApp extends Application {
     private Stage primaryStage;
     private BorderPane rootLayout;
 
+    public Stage getPrimaryStage() {
+        return primaryStage;
+    }
+
     @Override
     public void start(Stage primaryStage){
         this.primaryStage = primaryStage;
@@ -48,6 +52,8 @@ public class MainApp extends Application {
             AnchorPane anchorPane = loader.load();
 
             rootLayout.setCenter(anchorPane);
+            DrawingController controller = loader.getController();
+            controller.setMainApp(this);
         }catch (Exception e){
             e.printStackTrace();
         }

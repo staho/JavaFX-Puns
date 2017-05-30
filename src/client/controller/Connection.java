@@ -18,9 +18,15 @@ public class Connection{
     private ObjectOutputStream outputStream;
     private ObjectInputStream inputStream;
     private DrawingController drawingController1;
+    private String hostName;
+
+    public String getHostName(){
+        return hostName;
+    }
 
     public Connection(DrawingController drawingController){
         this.drawingController1 = drawingController;
+        hostName = null;
         InetAddress host = null;
         try {
             host = InetAddress.getByName(ipAddress);
@@ -32,6 +38,7 @@ public class Connection{
                 clientSocket = new Socket(host, PORT);
                 clientSocket.setReuseAddress(true);
                 System.out.println("Connected to: " + host.getHostName() + ":" + host.getHostAddress());
+                hostName = host.getHostName();
 
                 outputStream = new ObjectOutputStream(clientSocket.getOutputStream());
                 inputStream = new ObjectInputStream(clientSocket.getInputStream());
